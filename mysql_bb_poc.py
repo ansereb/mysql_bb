@@ -14,8 +14,7 @@ def sqli(entry_point, inj_str):
 
 def main():
     if len(sys.argv) != 2:
-        print("(+) usage: %s <target> <injection_string>" % sys.argv[0])
-        print('(+) eg: %s 192.168.1.100?param= ' %sys.argv[0])
+        print('(+) usage example: %s http://localhost?param= ' %sys.argv[0])
     entry_point = sys.argv[1] 
     print("(+) Retrieving database version....")
     # 19 is length of the version() string
