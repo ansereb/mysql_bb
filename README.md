@@ -1,5 +1,5 @@
 # mysql_bb
-Boolean-based blind SQL injection Proof of Concept for MySQL.
+Boolean-based blind SQL injection exploit for MySQL.
 
 This script attempts to retrieve result of given SQL query by making boolean-based blind injection into supplied HTTP GET URI. Basic concept is the assumption that True and False answers has different Content-Length header and True>False.
 ## Usage example
