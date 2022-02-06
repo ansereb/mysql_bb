@@ -12,7 +12,7 @@ def response_length(data, param, payload):
     if args['method'] == 'GET':
         result = requests.get(args['url'], params=inj_str)
     elif args['method'] == 'POST':
-        result = requests.post(args['url'], data=inj_str, headers={'Content-Type': 'application/x-www-form-urlencoded'}, proxies={"http":"http://127.0.0.1:8080"})
+        result = requests.post(args['url'], data=inj_str, headers={'Content-Type': 'application/x-www-form-urlencoded'})
     return int(result.headers['Content-Length'])
 
 
